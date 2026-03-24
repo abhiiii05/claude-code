@@ -3,34 +3,13 @@
 async function main() {
   
   
-  
-  
-  
   const [, , flag, prompt] = process.argv;
   const apiKey = process.env.OPENROUTER_API_KEY;
-  const baseURL =
-    process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1";
+  const baseURL = process.env.OPENROUTER_BASE_URL ?? "https://openrouter.ai/api/v1";
 
   
   
-  const read = {
-    "type": "function",
-    "function": {
-      "name": "Read",
-      "description": "Read and return the contents of a file",
-      "parameters": {
-        "type": "object",
-        "properties": {
-          "file_path": {
-            "type": "string",
-            "description": "The path to the file to read"
-          }
-        },
-        "required": ["file_path"]
-      }
-    }
-  }
-  
+
   
   if (!apiKey) {
     throw new Error("OPENROUTER_API_KEY is not set");
@@ -49,6 +28,25 @@ async function main() {
     body: JSON.stringify({
       model: "anthropic/claude-haiku-4.5",
       messages: [{ role: "user", content: prompt }],
+      tools: [
+        {
+          "type": "function",
+          "function": {
+            "name": "Read",
+            "description": "Read and return the contents of a file",
+            "parameters": {
+              "type": "object",
+              "properties": {
+                "file_path": {
+                  "type": "string",
+                  "description": "The path to the file to read"
+                }
+              },
+              "required": ["file_path"]
+            }
+          }
+        } 
+      ],
     }),
   });
 
