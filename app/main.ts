@@ -47,7 +47,19 @@ async function main() {
           }
         } 
       ],
-    }),
+      "tool_calls": [
+                {
+                  "id": "call_abc123",
+                  "type": "function",
+                  "function": {
+                    "name": "Read",
+                    "arguments": "{\"file_path\": \"/path/to/file.txt\"}"
+                  }
+                }
+      ],
+      "finish_reason": "tool_calls"
+    } 
+    ),
   });
 
   if (!res.ok) {
