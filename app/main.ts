@@ -62,7 +62,7 @@ async function main() {
   }
 
   const response = await res.json();
-  console.log(JSON.stringify(response, null, 2));
+  // console.log(JSON.stringify(response, null, 2));
 
   if (!response.choices || response.choices.length === 0) {
     throw new Error("no choices in response");
