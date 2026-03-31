@@ -1,6 +1,5 @@
 import OpenAI from "openai";
 import fs from "fs";
-import "../test1.txt"
 
 // Use the built-in fetch API instead of the 'openai' package to avoid missing dependency
 
@@ -95,7 +94,7 @@ async function main() {
   }
   
   else {
-    console.log(response)
+    console.log(message.content);
   }
 
   // TODO: Uncomment the lines below to pass the first stage
