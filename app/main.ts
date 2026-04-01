@@ -20,85 +20,87 @@ async function main() {
     apiKey: apiKey,
     baseURL: baseURL,
   });
+  
+  const messages : any[] = [{ role: "user", content: prompt }];
 
-  // Call the OpenRouter / OpenAI-compatible chat completions endpoint directly via fetch
-  const res = await fetch(`${baseURL}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${apiKey}`,
-    },
-    body: JSON.stringify({
-      model: "anthropic/claude-haiku-4.5",
-      messages: [{ role: "user", content: prompt }],
-      tools: [
-        {
-          type: "function",
-          function: {
-            name: "Read",
-            description: "Read and return the contents of a file",
-            parameters: {
-              type: "object",
-              properties: {
-                file_path: {
-                  type: "string",
-                  description: "The path to the file to read",
+  
+  while (true) {
+    const res = await fetch(`${baseURL}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "anthropic/claude-haiku-4.5",
+        messages : messages,
+        tools: [
+          {
+            type: "function",
+            function: {
+              name: "Read",
+              description: "Read and return the contents of a file",
+              parameters: {
+                type: "object",
+                properties: {
+                  file_path: {
+                    type: "string",
+                    description: "The path to the file to read",
+                  },
                 },
+                required: ["file_path"],
               },
-              required: ["file_path"],
             },
           },
-        },
-      ],
-      max_tokens: 1000,
-    }),
-  });
-
-  if (!res.ok) {
-    const errText = await res.text().catch(() => "");
-    throw new Error(
-      `request failed: ${res.status} ${res.statusText} ${errText}`,
-    );
-  }
-
-  const response = await res.json();
-  // console.log(JSON.stringify(response, null, 2));
-
-  if (!response.choices || response.choices.length === 0) {
-    throw new Error("no choices in response");
-  }
+        ],
+        max_tokens: 1000,
+      }),
+    });
   
-  const message = response.choices[0].message;
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "");
+      throw new Error(
+        `request failed: ${res.status} ${res.statusText} ${errText}`,
+      );
+    }
   
+    const response = await res.json();
+    // console.log(JSON.stringify(response, null, 2));
+  
+    if (!response.choices || response.choices.length === 0) {
+      throw new Error("no choices in response");
+    }
+    
+    const message = response.choices[0].message;
+    messages.push(message);
+    
+  
+    // You can use print statements as follows for debugging, they'll be visible when running tests.
+    console.error("Logs from your program will appear here!");
+    if(message.tool_calls && message.tool_calls.length >= 1) {
+      const toolCall = message.tool_calls[0];
+      const functionName = toolCall.function.name;
+      const argumentsString = toolCall.function.arguments;
+      const args = JSON.parse(argumentsString);
+      const toolId = toolCall.id;
+      
+      
+      if (functionName === "Read") {
+        const content = fs.readFileSync(args.file_path, "utf-8");
+        messages.push({ role: "tool", tool_call_id: toolId, content: content })
+        // console.log(content);
+      }
+    }
 
-  // You can use print statements as follows for debugging, they'll be visible when running tests.
-  console.error("Logs from your program will appear here!");
-  // console.log(message)
-  if(message.tool_calls && message.tool_calls.length >= 1) {
-    const toolCall = message.tool_calls[0];
-    const functionName = toolCall.function.name;
-    const argumentsString = toolCall.function.arguments;
-    const args = JSON.parse(argumentsString);
+    // console.log(response.choices[0].message.content);
     
-    // console.log("tool call detected", toolCall)
-    // console.log(functionName)
-    // console.log(argumentsString)
-    // console.log(args)
-    // console.log(args.file_path)
-    
-    
-    if (functionName === "Read") {
-      const content = fs.readFileSync(args.file_path, "utf-8");
-      console.log(content);
+    if (!message.tool_calls) {
+      console.log(message.content);
+      break;
     }
   }
-  
-  else {
-    console.log(message.content);
-  }
 
-  // TODO: Uncomment the lines below to pass the first stage
-  // console.log(response.choices[0].message.content);
-}
+}  // Call the OpenRouter / OpenAI-compatible chat completions endpoint directly via fetch
+ 
 
 main();
