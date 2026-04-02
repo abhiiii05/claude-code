@@ -1,5 +1,6 @@
 import OpenAI from "openai";
 import fs from "fs";
+import { execSync } from "child_process";
 
 // Use the built-in fetch API instead of the 'openai' package to avoid missing dependency
 
@@ -72,6 +73,23 @@ async function main() {
                 }
               }
             }
+          },
+          {
+            "type": "function",
+            "function": {
+              "name": "Bash",
+              "description": "Execute a shell command",
+              "parameters": {
+                "type": "object",
+                "required": ["command"],
+                "properties": {
+                  "command": {
+                    "type": "string",
+                    "description": "The command to execute"
+                  }
+                }
+              }
+            }
           }
         ],
         max_tokens: 1000,
@@ -119,6 +137,19 @@ async function main() {
         // console.log(filePath)
         messages.push({ role: "tool", tool_call_id: toolId, content: "File written successfully"  })
         
+      }
+      
+      if (functionName === "Bash") {
+        const command = args.command;
+        // const result = execSync(command, {encoding: "utf-8"})
+        // messages.push({ role: "tool", tool_call_id: toolId, content: result })
+        let result: string;
+        try {
+          result = execSync(command, {encoding: "utf-8"})
+        } catch (e) {
+          result = (e as Error).message;
+        }
+        messages.push({ role: "tool", tool_call_id: toolId, content: result })
       }
     }
 
