@@ -52,6 +52,27 @@ async function main() {
               },
             },
           },
+          {
+            "type": "function",
+            "function": {
+              "name": "Write",
+              "description": "Write content to a file",
+              "parameters": {
+                "type": "object",
+                "required": ["file_path", "content"],
+                "properties": {
+                  "file_path": {
+                    "type": "string",
+                    "description": "The path of the file to write to"
+                  },
+                  "content": {
+                    "type": "string",
+                    "description": "The content to write to the file"
+                  }
+                }
+              }
+            }
+          }
         ],
         max_tokens: 1000,
       }),
@@ -89,6 +110,15 @@ async function main() {
         const content = fs.readFileSync(args.file_path, "utf-8");
         messages.push({ role: "tool", tool_call_id: toolId, content: content })
         // console.log(content);
+      }
+      
+      if (functionName === "Write") {
+        const content = args.content;
+        const filePath = args.file_path;
+        fs.writeFileSync(filePath, content, "utf-8");
+        // console.log(filePath)
+        messages.push({ role: "tool", tool_call_id: toolId, content: "File written successfully"  })
+        
       }
     }
 
