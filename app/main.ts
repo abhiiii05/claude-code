@@ -22,7 +22,10 @@ async function main() {
     baseURL: baseURL,
   });
   
-  const messages : any[] = [{ role: "user", content: prompt }];
+  const messages: any[] = [
+    { "role": "system", "content": "You have access to the following skills:\n\n- apple: ..." },
+    { role: "user", content: prompt }
+  ];
 
   
   while (true) {
